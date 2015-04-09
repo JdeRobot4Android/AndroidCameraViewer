@@ -21,7 +21,7 @@
 package jderobot;
 
 /**
- * Interface to the ptencoders sensor.
+ * Interface to the Gazebo ptencoders sensor.
  **/
 public abstract class _PTEncodersDisp extends Ice.ObjectImpl implements PTEncoders
 {

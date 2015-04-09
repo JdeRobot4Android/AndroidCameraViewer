@@ -20,21 +20,16 @@
 
 package jderobot;
 
-/**
- * PTMotorsData a class that contains the pantilt data
- **/
 public class PTMotorsData extends Ice.ObjectImpl
 {
     public PTMotorsData()
     {
     }
 
-    public PTMotorsData(float latitude, float latitudeSpeed, float longitude, float longitudeSpeed)
+    public PTMotorsData(float latitude, float longitude)
     {
         this.latitude = latitude;
-        this.latitudeSpeed = latitudeSpeed;
         this.longitude = longitude;
-        this.longitudeSpeed = longitudeSpeed;
     }
 
     private static class __F implements Ice.ObjectFactory
@@ -102,9 +97,7 @@ public class PTMotorsData extends Ice.ObjectImpl
     {
         __os.startWriteSlice(ice_staticId(), -1, true);
         __os.writeFloat(latitude);
-        __os.writeFloat(latitudeSpeed);
         __os.writeFloat(longitude);
-        __os.writeFloat(longitudeSpeed);
         __os.endWriteSlice();
     }
 
@@ -112,19 +105,13 @@ public class PTMotorsData extends Ice.ObjectImpl
     {
         __is.startReadSlice();
         latitude = __is.readFloat();
-        latitudeSpeed = __is.readFloat();
         longitude = __is.readFloat();
-        longitudeSpeed = __is.readFloat();
         __is.endReadSlice();
     }
 
     public float latitude;
 
-    public float latitudeSpeed;
-
     public float longitude;
 
-    public float longitudeSpeed;
-
-    public static final long serialVersionUID = -5837322459561713582L;
+    public static final long serialVersionUID = -7015046310643112607L;
 }

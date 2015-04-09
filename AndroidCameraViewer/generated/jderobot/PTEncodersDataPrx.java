@@ -20,9 +20,6 @@
 
 package jderobot;
 
-/**
- * ptencoders dat information 
- **/
 public interface PTEncodersDataPrx extends Ice.ObjectPrx
 {
 }

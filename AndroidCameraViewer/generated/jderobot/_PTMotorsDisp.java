@@ -21,7 +21,7 @@
 package jderobot;
 
 /**
- * Interface to the PTMotors Actuators interaction.
+ * Interface to the Gazebo PTMotors Actuators interaction.
  **/
 public abstract class _PTMotorsDisp extends Ice.ObjectImpl implements PTMotors
 {
@@ -73,16 +73,6 @@ public abstract class _PTMotorsDisp extends Ice.ObjectImpl implements PTMotors
         return __ids[1];
     }
 
-    public final PTMotorsData getPTMotorsData()
-    {
-        return getPTMotorsData(null);
-    }
-
-    public final PTMotorsParams getPTMotorsParams()
-    {
-        return getPTMotorsParams(null);
-    }
-
     public final int setPTMotorsData(PTMotorsData data)
     {
         return setPTMotorsData(data, null);
@@ -103,34 +93,8 @@ public abstract class _PTMotorsDisp extends Ice.ObjectImpl implements PTMotors
         return Ice.DispatchStatus.DispatchOK;
     }
 
-    public static Ice.DispatchStatus ___getPTMotorsData(PTMotors __obj, IceInternal.Incoming __inS, Ice.Current __current)
-    {
-        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
-        __inS.readEmptyParams();
-        PTMotorsData __ret = __obj.getPTMotorsData(__current);
-        IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
-        __os.writeObject(__ret);
-        __os.writePendingObjects();
-        __inS.__endWriteParams(true);
-        return Ice.DispatchStatus.DispatchOK;
-    }
-
-    public static Ice.DispatchStatus ___getPTMotorsParams(PTMotors __obj, IceInternal.Incoming __inS, Ice.Current __current)
-    {
-        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
-        __inS.readEmptyParams();
-        PTMotorsParams __ret = __obj.getPTMotorsParams(__current);
-        IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
-        __os.writeObject(__ret);
-        __os.writePendingObjects();
-        __inS.__endWriteParams(true);
-        return Ice.DispatchStatus.DispatchOK;
-    }
-
     private final static String[] __all =
     {
-        "getPTMotorsData",
-        "getPTMotorsParams",
         "ice_id",
         "ice_ids",
         "ice_isA",
@@ -150,29 +114,21 @@ public abstract class _PTMotorsDisp extends Ice.ObjectImpl implements PTMotors
         {
             case 0:
             {
-                return ___getPTMotorsData(this, in, __current);
+                return ___ice_id(this, in, __current);
             }
             case 1:
             {
-                return ___getPTMotorsParams(this, in, __current);
+                return ___ice_ids(this, in, __current);
             }
             case 2:
             {
-                return ___ice_id(this, in, __current);
+                return ___ice_isA(this, in, __current);
             }
             case 3:
             {
-                return ___ice_ids(this, in, __current);
-            }
-            case 4:
-            {
-                return ___ice_isA(this, in, __current);
-            }
-            case 5:
-            {
                 return ___ice_ping(this, in, __current);
             }
-            case 6:
+            case 4:
             {
                 return ___setPTMotorsData(this, in, __current);
             }

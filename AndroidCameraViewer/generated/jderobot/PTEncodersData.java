@@ -20,20 +20,16 @@
 
 package jderobot;
 
-/**
- * ptencoders dat information 
- **/
 public class PTEncodersData extends Ice.ObjectImpl
 {
     public PTEncodersData()
     {
     }
 
-    public PTEncodersData(float panAngle, float tiltAngle, int clock)
+    public PTEncodersData(float panAngle, float tiltAngle)
     {
         this.panAngle = panAngle;
         this.tiltAngle = tiltAngle;
-        this.clock = clock;
     }
 
     private static class __F implements Ice.ObjectFactory
@@ -102,7 +98,6 @@ public class PTEncodersData extends Ice.ObjectImpl
         __os.startWriteSlice(ice_staticId(), -1, true);
         __os.writeFloat(panAngle);
         __os.writeFloat(tiltAngle);
-        __os.writeInt(clock);
         __os.endWriteSlice();
     }
 
@@ -111,7 +106,6 @@ public class PTEncodersData extends Ice.ObjectImpl
         __is.startReadSlice();
         panAngle = __is.readFloat();
         tiltAngle = __is.readFloat();
-        clock = __is.readInt();
         __is.endReadSlice();
     }
 
@@ -119,7 +113,5 @@ public class PTEncodersData extends Ice.ObjectImpl
 
     public float tiltAngle;
 
-    public int clock;
-
-    public static final long serialVersionUID = -7657259237070830632L;
+    public static final long serialVersionUID = 5140279486784268983L;
 }

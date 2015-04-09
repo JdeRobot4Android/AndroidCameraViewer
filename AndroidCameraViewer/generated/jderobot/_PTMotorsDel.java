@@ -24,10 +24,4 @@ public interface _PTMotorsDel extends Ice._ObjectDel
 {
     int setPTMotorsData(PTMotorsData data, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
         throws IceInternal.LocalExceptionWrapper;
-
-    PTMotorsData getPTMotorsData(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
-        throws IceInternal.LocalExceptionWrapper;
-
-    PTMotorsParams getPTMotorsParams(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
-        throws IceInternal.LocalExceptionWrapper;
 }

@@ -20,9 +20,6 @@
 
 package jderobot;
 
-/**
- * ptencoders dat information 
- **/
 public final class PTEncodersDataPrxHelper extends Ice.ObjectPrxHelperBase implements PTEncodersDataPrx
 {
     public static PTEncodersDataPrx checkedCast(Ice.ObjectPrx __obj)

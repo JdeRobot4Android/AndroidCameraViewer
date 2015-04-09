@@ -21,7 +21,7 @@
 package jderobot;
 
 /**
- * Interface to the PTMotors Actuators interaction.
+ * Interface to the Gazebo PTMotors Actuators interaction.
  **/
 public interface PTMotors extends Ice.Object,
                                   _PTMotorsOperations, _PTMotorsOperationsNC

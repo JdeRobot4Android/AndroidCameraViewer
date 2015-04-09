@@ -21,7 +21,7 @@
 package jderobot;
 
 /**
- * Interface to the PTMotors Actuators interaction.
+ * Interface to the Gazebo PTMotors Actuators interaction.
  **/
 public interface PTMotorsPrx extends Ice.ObjectPrx
 {
@@ -42,40 +42,4 @@ public interface PTMotorsPrx extends Ice.ObjectPrx
     public Ice.AsyncResult begin_setPTMotorsData(PTMotorsData data, java.util.Map<String, String> __ctx, Callback_PTMotors_setPTMotorsData __cb);
 
     public int end_setPTMotorsData(Ice.AsyncResult __result);
-
-    public PTMotorsData getPTMotorsData();
-
-    public PTMotorsData getPTMotorsData(java.util.Map<String, String> __ctx);
-
-    public Ice.AsyncResult begin_getPTMotorsData();
-
-    public Ice.AsyncResult begin_getPTMotorsData(java.util.Map<String, String> __ctx);
-
-    public Ice.AsyncResult begin_getPTMotorsData(Ice.Callback __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsData(java.util.Map<String, String> __ctx, Ice.Callback __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsData(Callback_PTMotors_getPTMotorsData __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsData(java.util.Map<String, String> __ctx, Callback_PTMotors_getPTMotorsData __cb);
-
-    public PTMotorsData end_getPTMotorsData(Ice.AsyncResult __result);
-
-    public PTMotorsParams getPTMotorsParams();
-
-    public PTMotorsParams getPTMotorsParams(java.util.Map<String, String> __ctx);
-
-    public Ice.AsyncResult begin_getPTMotorsParams();
-
-    public Ice.AsyncResult begin_getPTMotorsParams(java.util.Map<String, String> __ctx);
-
-    public Ice.AsyncResult begin_getPTMotorsParams(Ice.Callback __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsParams(java.util.Map<String, String> __ctx, Ice.Callback __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsParams(Callback_PTMotors_getPTMotorsParams __cb);
-
-    public Ice.AsyncResult begin_getPTMotorsParams(java.util.Map<String, String> __ctx, Callback_PTMotors_getPTMotorsParams __cb);
-
-    public PTMotorsParams end_getPTMotorsParams(Ice.AsyncResult __result);
 }

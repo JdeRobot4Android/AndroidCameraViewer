@@ -29,7 +29,7 @@ public class Pose3DEncodersData extends Ice.ObjectImpl
     {
     }
 
-    public Pose3DEncodersData(float x, float y, float z, float pan, float tilt, float roll, int clock, float maxPan, float maxTilt, float minPan, float minTilt)
+    public Pose3DEncodersData(float x, float y, float z, float pan, float tilt, float roll, int clock)
     {
         this.x = x;
         this.y = y;
@@ -38,10 +38,6 @@ public class Pose3DEncodersData extends Ice.ObjectImpl
         this.tilt = tilt;
         this.roll = roll;
         this.clock = clock;
-        this.maxPan = maxPan;
-        this.maxTilt = maxTilt;
-        this.minPan = minPan;
-        this.minTilt = minTilt;
     }
 
     private static class __F implements Ice.ObjectFactory
@@ -115,10 +111,6 @@ public class Pose3DEncodersData extends Ice.ObjectImpl
         __os.writeFloat(tilt);
         __os.writeFloat(roll);
         __os.writeInt(clock);
-        __os.writeFloat(maxPan);
-        __os.writeFloat(maxTilt);
-        __os.writeFloat(minPan);
-        __os.writeFloat(minTilt);
         __os.endWriteSlice();
     }
 
@@ -132,10 +124,6 @@ public class Pose3DEncodersData extends Ice.ObjectImpl
         tilt = __is.readFloat();
         roll = __is.readFloat();
         clock = __is.readInt();
-        maxPan = __is.readFloat();
-        maxTilt = __is.readFloat();
-        minPan = __is.readFloat();
-        minTilt = __is.readFloat();
         __is.endReadSlice();
     }
 
@@ -153,13 +141,5 @@ public class Pose3DEncodersData extends Ice.ObjectImpl
 
     public int clock;
 
-    public float maxPan;
-
-    public float maxTilt;
-
-    public float minPan;
-
-    public float minTilt;
-
-    public static final long serialVersionUID = 2850676741470334340L;
+    public static final long serialVersionUID = 1396160832056605124L;
 }

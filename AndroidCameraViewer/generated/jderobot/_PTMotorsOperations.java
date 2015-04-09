@@ -21,13 +21,9 @@
 package jderobot;
 
 /**
- * Interface to the PTMotors Actuators interaction.
+ * Interface to the Gazebo PTMotors Actuators interaction.
  **/
 public interface _PTMotorsOperations
 {
     int setPTMotorsData(PTMotorsData data, Ice.Current __current);
-
-    PTMotorsData getPTMotorsData(Ice.Current __current);
-
-    PTMotorsParams getPTMotorsParams(Ice.Current __current);
 }

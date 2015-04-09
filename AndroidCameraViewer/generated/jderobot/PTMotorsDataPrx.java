@@ -20,9 +20,6 @@
 
 package jderobot;
 
-/**
- * PTMotorsData a class that contains the pantilt data
- **/
 public interface PTMotorsDataPrx extends Ice.ObjectPrx
 {
 }

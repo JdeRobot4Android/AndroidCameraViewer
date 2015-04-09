@@ -21,7 +21,7 @@
 package jderobot;
 
 /**
- * Interface to the ptencoders sensor.
+ * Interface to the Gazebo ptencoders sensor.
  **/
 public interface PTEncoders extends Ice.Object,
                                     _PTEncodersOperations, _PTEncodersOperationsNC
