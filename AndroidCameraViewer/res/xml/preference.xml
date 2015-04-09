@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+
+    <PreferenceCategory android:title="ICE Settings">
+        
+		<EditTextPreference android:defaultValue="@string/port" android:key="@string/PortNumber" android:title="@string/PortNumber"/>
+		 <EditTextPreference android:defaultValue="@string/protocol" android:key="@string/ProtocolNumber" android:title="@string/ProtocolTitle"/>    
+		<EditTextPreference android:title="@string/ipaddress" android:key="@string/ipaddresskey" android:defaultValue="@string/defaultip"/>	 
+	</PreferenceCategory>
+    
+    
+    
+</PreferenceScreen>
