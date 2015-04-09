@@ -11,7 +11,7 @@
     <string name="ProtocolTitle">Protocol(default, tcp or udp)</string>
     <string name="ipaddress">ipaddress</string>
     <string name="ipaddresskey">ipkey</string>
-    <string name="defaultip">192.168.1.10</string>
+    <string name="defaultip">172.10.2.102</string>
 
     
 

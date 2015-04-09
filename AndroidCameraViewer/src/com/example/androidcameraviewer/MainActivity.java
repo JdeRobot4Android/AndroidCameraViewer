@@ -49,10 +49,10 @@ public class MainActivity extends Activity implements OnClickListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         port = prefs.getString("Port Number", "9999");
         protocol = prefs.getString("protocol", "tcp");
-        ipaddress = prefs.getString("ipkey", "172.10.2.101");
+        ipaddress = prefs.getString("ipkey", "172.10.2.102");
 //        new Thread(new Runnable() {
 //          public void run() {
-//           
+//        	  
 //          }
 //        }).start();
 
@@ -65,14 +65,16 @@ public class MainActivity extends Activity implements OnClickListener {
 //    	        } 
 //    	    }, 0, 1000); 
         try {
-			initializeCommunicator();
-		} catch (DataNotExistException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (HardwareFailedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+  			initializeCommunicator();
+  			//Toast.makeText(getApplicationContext(), "Communicator initialized", Toast.LENGTH_LONG).show();
+  		} catch (DataNotExistException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (HardwareFailedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+        
     }
 
     public void onClick(View v) { // Parameter v stands for the view that was clicked.  
@@ -142,8 +144,11 @@ public class MainActivity extends Activity implements OnClickListener {
         Ice.Communicator communicator;
         communicator = Ice.Util.initialize();
       	Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
+      	
       	cprx = jderobot.CameraPrxHelper.checkedCast(base);
+      	
       	jderobot.ImageData realdata = cprx.getImageData();
+      	//Toast.makeText(getApplicationContext(), realdata.toString(), Toast.LENGTH_LONG).show();
       	//jderobot.ImageData realdata = cprx.begin_getImageData();
       	
       	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, 240, 160, null);
@@ -152,7 +157,7 @@ public class MainActivity extends Activity implements OnClickListener {
       	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
       	
       	imag.setImageBitmap(mBitmap);
-
+      	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
         
         synchronized (this) {
           _communicator = communicator;
@@ -192,22 +197,24 @@ public class MainActivity extends Activity implements OnClickListener {
       // Get the port and protocol
       port = prefs.getString("Port Number", "9999");
       protocol = prefs.getString("protocol", "default");
-      ipaddress = prefs.getString("ipkey", "172.10.2.101");
-      Toast.makeText(getApplicationContext(), ipaddress, Toast.LENGTH_LONG).show();
+      ipaddress = prefs.getString("ipkey", "172.10.2.102");
+      //Toast.makeText(getApplicationContext(), ipaddress, Toast.LENGTH_LONG).show();
 //      new Thread(new Runnable() {
-//          public void run() {
-//            
+//          
 //          }
 //        }).start();
-      try {
-			initializeCommunicator();
-		} catch (DataNotExistException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (HardwareFailedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	  try {
+  			initializeCommunicator();
+  			//Toast.makeText(getApplicationContext(), "Communicator initialized", Toast.LENGTH_LONG).show();
+  		} catch (DataNotExistException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (HardwareFailedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+      
+      
 
     }
 
