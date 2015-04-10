@@ -1,12 +1,7 @@
 package org.jderobot.androidcameraviewer;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import com.example.androidcameraviewer.R;
-
-
+import org.jderobot.androidcameraviewer.R;
 import jderobot.CameraPrx;
 import jderobot.DataNotExistException;
 import jderobot.HardwareFailedException;
@@ -19,17 +14,13 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 
 public class MainActivity extends Activity implements OnClickListener {
 

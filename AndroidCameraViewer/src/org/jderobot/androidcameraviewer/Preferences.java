@@ -2,8 +2,7 @@ package org.jderobot.androidcameraviewer;
 
 
 
-import com.example.androidcameraviewer.R;
-
+import org.jderobot.androidcameraviewer.R;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
