@@ -1,6 +1,8 @@
 package org.jderobot.androidcameraviewer;
 
 import java.io.ByteArrayOutputStream;
+
+
 import org.jderobot.androidcameraviewer.R;
 import jderobot.CameraPrx;
 import jderobot.DataNotExistException;
@@ -13,7 +15,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -22,7 +23,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
+
 
 public class MainActivity extends Activity implements OnClickListener {
 
@@ -67,6 +68,25 @@ public class MainActivity extends Activity implements OnClickListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+        new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					initializeCommunicator();
+				} catch (DataNotExistException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (HardwareFailedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+      
+       }).start();
+        
 //        Timer timer = new Timer(); 
 //    	timer.scheduleAtFixedRate(new TimerTask() 
 //    	    { 
@@ -78,21 +98,47 @@ public class MainActivity extends Activity implements OnClickListener {
         //Initialize ICE Communicator
     }
     
-    private class CustomTask extends AsyncTask<Void, Void, Void> {
-
-        protected Void doInBackground(Void... param) {
-            //Do some work
-        	
-            return null;
-        }
-
-        protected void onPostExecute(Void param) {
-            //Print Toast or open dialog
-        	Toast.makeText(getApplicationContext(), "Intitalization done", Toast.LENGTH_LONG).show();
-        }
-    }
+//    private class CustomTask extends AsyncTask<Void, Void, Void> {
+//
+//        protected Void doInBackground(Void... param) {
+//            //Do some work
+//        	try {
+//        		
+//      			jderobot.ImageData realdata;
+//      			
+//      			/*Get the image data*/
+//      	  		realdata = cprx.getImageData();
+//      	  		
+//      	  		/*Present image format is NV21 and it gives 240 x 160 size images*/
+//    	  	  	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
+//    	      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
+//    	      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
+//      	  	  	
+//      	  	  	/*Convert image to Bitmap*/
+//      	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+//      	  	  	
+//      	  	  	/*Set the image to ImageView*/
+//      	  	  	imag.setImageBitmap(mBitmap);
+//      	  	} catch (DataNotExistException e) {
+//      	  		// TODO Auto-generated catch block
+//      	  		e.printStackTrace();
+//      	  	} catch (HardwareFailedException e) {
+//      	  		// TODO Auto-generated catch block
+//      	  		e.printStackTrace();
+//      	  		} catch (Exception e){
+//      	  			e.printStackTrace();
+//      	  		}
+//            return null;
+//        }
+//
+//        protected void onPostExecute(Void param) {
+//            //Print Toast or open dialog
+//        	//Toast.makeText(getApplicationContext(), "Intitalization done", Toast.LENGTH_LONG).show();
+//        }
+//    }
 
     public void onClick(View v) {  
+    	
     	try {
     		
   			jderobot.ImageData realdata;
@@ -118,8 +164,7 @@ public class MainActivity extends Activity implements OnClickListener {
   	  		e.printStackTrace();
   	  		} catch (Exception e){
   	  			e.printStackTrace();
-  	  		} 	
-  	
+  	  		}    	
   	}
     
 //    private Runnable mMyRunnable = new Runnable()
@@ -160,7 +205,8 @@ public class MainActivity extends Activity implements OnClickListener {
     
     private Ice.Communicator _communicator;
     private CommunicatorCallback _cb;
-
+    
+    
     private void initializeCommunicator() throws DataNotExistException, HardwareFailedException {
       try {
     	/*Initialize Ice communicator*/
@@ -168,24 +214,30 @@ public class MainActivity extends Activity implements OnClickListener {
         communicator = Ice.Util.initialize();
         
         /*Get the object proxy*/
-      	Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+"172.10.2.108"+" -p " + port);
-      	Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
-      	cprx = jderobot.CameraPrxHelper.checkedCast(base);
       	
-      	/*Get image data*/
-      	jderobot.ImageData realdata = cprx.getImageData();
+      	//Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
+      	
+      	//Toast.makeText(getApplicationContext(), cprx.toString(), Toast.LENGTH_LONG).show();
+        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
+  		cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
+  		
+  		jderobot.ImageData realdata = cprx.getImageData();
+
+  		
       	//Toast.makeText(getApplicationContext(), realdata.toString(), Toast.LENGTH_LONG).show();
       	//jderobot.ImageData realdata = cprx.begin_getImageData();
-        Toast.makeText(getApplicationContext(), realdata.description.format, Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), realdata.description.format, Toast.LENGTH_LONG).show();
       	
       	/*Convert NV21 image data to Jpeg*/
       	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
       	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
       	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-      	
+
       	/*Convert Jpeg to Bitmap*/
-      	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
       	
+      	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+      	//Bitmap mBitmap = BitmapFactory.decodeByteArray(realdata.pixelData,0,realdata.pixelData.length);
+      	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
       	/*Set Bitmap image*/
       	
       	imag.setImageBitmap(mBitmap);
