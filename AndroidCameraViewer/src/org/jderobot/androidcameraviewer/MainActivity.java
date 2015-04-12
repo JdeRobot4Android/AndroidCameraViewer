@@ -10,56 +10,85 @@ import jderobot.HardwareFailedException;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity implements OnClickListener {
 
 	/*Image View declared*/
-	private ImageView imag;		
-	/*Button declared*/
-	private Button btn;	
+	private ImageView imag;	
 	
+	/*Button declared*/
+	private RelativeLayout rel_layout;	
+	
+	/*Declare pointer to camera interface*/
 	private CameraPrx cprx;
+	
 	/*String for port*/
 	private String port = "9999";
+	
 	/*String for ip address*/
 	private String ipaddress = "";
+	
 	/*String for protocol*/
 	private String protocol = "tcp";
+	
+	/*Set the flag to 1*/
+	private String NullFlag = "1";
+	
+	/*Declare the  task*/ 
+	DownloadFilesTask runner = new DownloadFilesTask();
+	
+	/*Declare the default width and height of ImageView*/
+	private int imagwidth = 240;
+	private int imagheight = 160;
+	
+	private int height_const = 0;
+	
+	private int executed = 1;
+	
+	/*Aspect Ratio*/
+	private double aspect_ratio = 0;
+
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        /*Set the imageview to imag*/
+        /*Set the ImageView to imag*/
         imag = (ImageView) findViewById(R.id.imageView1);
         
-        /*Set button*/
-        btn = (Button)findViewById(R.id.Button); 
-        btn.setOnClickListener(this);
+        /*Set click listener to layout*/
+        rel_layout = (RelativeLayout)findViewById(R.id.layout); 
+        rel_layout.setOnClickListener(this);
         
         /*Call the preferences and set them to the strings*/
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         port = prefs.getString("Port Number", "9999");
         protocol = prefs.getString("protocol", "tcp");
         ipaddress = prefs.getString("ipkey", "172.10.2.102");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //new CustomTask().execute((Void[])null);
         try {
 			initializeCommunicator();
+			
 			//Toast.makeText(getApplicationContext(), "Communicator initialized", Toast.LENGTH_LONG).show();
 		} catch (DataNotExistException e) {
 			// TODO Auto-generated catch block
@@ -69,130 +98,100 @@ public class MainActivity extends Activity implements OnClickListener {
 			e.printStackTrace();
 		}
 
-        new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					initializeCommunicator();
-				} catch (DataNotExistException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (HardwareFailedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-      
-       }).start();
-        
-//        Timer timer = new Timer(); 
-//    	timer.scheduleAtFixedRate(new TimerTask() 
-//    	    { 
-//    	        public void run() 
-//    	        { 
-//    	        	 
-//    	        } 
-//    	    }, 0, 1000); 
-        //Initialize ICE Communicator
     }
     
-//    private class CustomTask extends AsyncTask<Void, Void, Void> {
-//
-//        protected Void doInBackground(Void... param) {
-//            //Do some work
-//        	try {
-//        		
-//      			jderobot.ImageData realdata;
-//      			
-//      			/*Get the image data*/
-//      	  		realdata = cprx.getImageData();
-//      	  		
-//      	  		/*Present image format is NV21 and it gives 240 x 160 size images*/
-//    	  	  	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
-//    	      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-//    	      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-//      	  	  	
-//      	  	  	/*Convert image to Bitmap*/
-//      	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-//      	  	  	
-//      	  	  	/*Set the image to ImageView*/
-//      	  	  	imag.setImageBitmap(mBitmap);
-//      	  	} catch (DataNotExistException e) {
-//      	  		// TODO Auto-generated catch block
-//      	  		e.printStackTrace();
-//      	  	} catch (HardwareFailedException e) {
-//      	  		// TODO Auto-generated catch block
-//      	  		e.printStackTrace();
-//      	  		} catch (Exception e){
-//      	  			e.printStackTrace();
-//      	  		}
-//            return null;
-//        }
-//
-//        protected void onPostExecute(Void param) {
-//            //Print Toast or open dialog
-//        	//Toast.makeText(getApplicationContext(), "Intitalization done", Toast.LENGTH_LONG).show();
-//        }
-//    }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+     super.onWindowFocusChanged(hasFocus);
+     height_const = rel_layout.getHeight();
+     
+    }
 
     public void onClick(View v) {  
     	
-    	try {
-    		
-  			jderobot.ImageData realdata;
-  			
-  			/*Get the image data*/
-  	  		realdata = cprx.getImageData();
-  	  		
-  	  		/*Present image format is NV21 and it gives 240 x 160 size images*/
-	  	  	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
-	      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-	      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-  	  	  	
-  	  	  	/*Convert image to Bitmap*/
-  	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-  	  	  	
-  	  	  	/*Set the image to ImageView*/
-  	  	  	imag.setImageBitmap(mBitmap);
-  	  	} catch (DataNotExistException e) {
-  	  		// TODO Auto-generated catch block
-  	  		e.printStackTrace();
-  	  	} catch (HardwareFailedException e) {
-  	  		// TODO Auto-generated catch block
-  	  		e.printStackTrace();
-  	  		} catch (Exception e){
-  	  			e.printStackTrace();
-  	  		}    	
+    	if(NullFlag == "0"){
+    		if(executed == 1){
+    			runner = new DownloadFilesTask();
+    			runner.execute(cprx);	
+    			executed = 0;
+    		}
+    		else{
+    			/*As runner is already running we cancel it*/
+    			runner.cancel(true);
+    			executed = 1;
+    		}	
+    	}else{
+    		/* If NullFlag is not zero then there is no connection*/
+    		Toast.makeText(getApplicationContext(), "Connection not established", Toast.LENGTH_SHORT).show();	
+    	}
   	}
+
+    private Void setaspectratio(){
+    	
+    	aspect_ratio = (double) imagwidth/ (double) imagheight ;
+    	imagheight = imag.getLayoutParams().height;
+    	imagwidth = (int) (aspect_ratio*imagheight);
+    	Log.e("baa", imagwidth+" " + imagheight + " "+ aspect_ratio);
+    	//Toast.makeText(getApplicationContext(), "imagheight" + imagheight + "imagwidth" + imagwidth + aspect_ratio + imag.getLayoutParams().height + imag.getLayoutParams().width, Toast.LENGTH_LONG).show();
+    	imag.getLayoutParams().height = imagheight;
+    	imag.getLayoutParams().width = imagwidth;
+    	
+		return null;	
+    }
     
-//    private Runnable mMyRunnable = new Runnable()
-//    {
-//        @Override
-//        public void run()
-//        {
-//        	try {
-//      			jderobot.ImageData realdata;
-//      	  		realdata = cprx.getImageData();
-//      	  		YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, 240, 160, null);
-//      	  	  	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-//      	  	  	img.compressToJpeg(new Rect(0, 0, 240, 160), 50, baoStream);
-//      	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-//      	  	  	
-//      	  	  	imag.setImageBitmap(mBitmap);
-//      	  	} catch (DataNotExistException e) {
-//      	  		// TODO Auto-generated catch block
-//      	  		e.printStackTrace();
-//      	  	} catch (HardwareFailedException e) {
-//      	  		// TODO Auto-generated catch block
-//      	  		e.printStackTrace();
-//      	  		} catch (Exception e){
-//      	  			e.printStackTrace();
-//      	  		}
-//        }
-//        
-//     };
+
+   
+    private class DownloadFilesTask extends AsyncTask<CameraPrx, Bitmap, Long> {
+    	 protected Long doInBackground(jderobot.CameraPrx... urls) {
+    		 /* Execute this loop until button is clicked*/
+    		 while(true){
+    		 try {
+    	    		
+    	  			jderobot.ImageData realdata;
+    	  			
+    	  			/*Get the image data*/
+    	  	  		realdata = cprx.getImageData();
+    	  	  		
+    	  	  		/*Present image format is NV21 and it gives 240 x 160 size images*/
+    		  	  	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
+    		      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
+    		      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
+    	  	  	  	
+    		      	
+    	  	  	  	/*Convert image to Bitmap*/
+    	  	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+    	  	  	  	imagwidth = mBitmap.getWidth();
+    	  	  	  	
+    	  	  	  	imagheight = mBitmap.getHeight();
+    	  	  	  	
+    	  	  	  	publishProgress(mBitmap);
+    	  	  	  	if(isCancelled())
+    	  	  	  		break;
+    	  	  	
+    	  	  	} catch (DataNotExistException e) {
+    	  	  		// TODO Auto-generated catch block
+    	  	  		e.printStackTrace();
+    	  	  	} catch (HardwareFailedException e) {
+    	  	  		// TODO Auto-generated catch block
+    	  	  		e.printStackTrace();
+    	  	  		} catch (Exception e){
+    	  	  			e.printStackTrace();
+    	  	  		} 
+    		 }
+    		 
+    	     return (long) 1;
+    	 }
+
+
+    	 protected void onProgressUpdate(Bitmap... mBitmap) {
+    		 /*Set the ImageView to Bitmap on ProgressUpdate*/
+    	     imag.setImageBitmap(mBitmap[0]);
+    	 }
+
+    	 protected void onPostExecute(Long result) {
+    	     /*Do nothing*/
+    	 }
+    	}
   	
     /* Implementation of ICE */
     interface CommunicatorCallback {
@@ -209,20 +208,24 @@ public class MainActivity extends Activity implements OnClickListener {
     
     private void initializeCommunicator() throws DataNotExistException, HardwareFailedException {
       try {
+    	
+    	NullFlag = "1";
     	/*Initialize Ice communicator*/
         Ice.Communicator communicator;
         communicator = Ice.Util.initialize();
         
         /*Get the object proxy*/
-      	
+        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
       	//Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
       	
       	//Toast.makeText(getApplicationContext(), cprx.toString(), Toast.LENGTH_LONG).show();
-        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
-  		cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
+        cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
   		
   		jderobot.ImageData realdata = cprx.getImageData();
-
+  		if(cprx.getImageData() != null){
+  			/*This code is reached only when connection is established so set NullFlag to 0*/
+  			NullFlag = "0";
+  		}
   		
       	//Toast.makeText(getApplicationContext(), realdata.toString(), Toast.LENGTH_LONG).show();
       	//jderobot.ImageData realdata = cprx.begin_getImageData();
@@ -234,15 +237,17 @@ public class MainActivity extends Activity implements OnClickListener {
       	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
 
       	/*Convert Jpeg to Bitmap*/
-      	
       	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
       	//Bitmap mBitmap = BitmapFactory.decodeByteArray(realdata.pixelData,0,realdata.pixelData.length);
       	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
-      	/*Set Bitmap image*/
       	
-      	imag.setImageBitmap(mBitmap);
-      	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
-//        
+      	/* Get the Height and Width of the Bitmap Image*/
+      	imagwidth = mBitmap.getWidth();
+      	imagheight = mBitmap.getHeight();
+      	Log.e("aaa", imagwidth+" " + imagheight + " " + realdata.description.height);
+      	/*Set Bitmap image*/
+		imag.setImageBitmap(mBitmap);
+      	
         synchronized (this) {
           _communicator = communicator;
           if (_cb != null) {
@@ -264,6 +269,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
       public void onPause() {
         super.onPause();
+         
       }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -282,14 +288,9 @@ public class MainActivity extends Activity implements OnClickListener {
       port = prefs.getString("Port Number", "9999");
       protocol = prefs.getString("protocol", "default");
       ipaddress = prefs.getString("ipkey", "172.10.2.102");
-      //Toast.makeText(getApplicationContext(), ipaddress, Toast.LENGTH_LONG).show();
-//      new Thread(new Runnable() {
-//          
-//          }
-//        }).start();
-//      new CustomTask().execute((Void[])null);
-    	  try {
+      try {
   			initializeCommunicator();
+  			
   			//Toast.makeText(getApplicationContext(), "Communicator initialized", Toast.LENGTH_LONG).show();
   		} catch (DataNotExistException e) {
   			// TODO Auto-generated catch block
@@ -298,8 +299,17 @@ public class MainActivity extends Activity implements OnClickListener {
   			// TODO Auto-generated catch block
   			e.printStackTrace();
   		}
-      
-      
+    	//imag.setLayoutParams(new LayoutParams(imagwidth, imagheight));
+      	//setaspectratio();
+//      final float scale = this.getResources().getDisplayMetrics().density;
+          
+//  		imag.getLayoutParams().width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, imagwidth, getResources().getDisplayMetrics());
+//  		abcd =(int) (imagwidth * scale + 0.5f);
+//  		Log.e(NullFlag, abcd +"  "+ imagwidth + "  " + scale);
+//  		//Toast.makeText(getApplicationContext(), (int) (imagwidth * scale + 0.5f) , Toast.LENGTH_LONG);
+//  		imag.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, imagheight, getResources().getDisplayMetrics());
+//  		abcd =(int) (imagheight * scale + 0.5f);
+//  		Log.e(NullFlag, abcd +"  " + imagheight);
 
     }
 
@@ -310,6 +320,7 @@ public class MainActivity extends Activity implements OnClickListener {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+        	/* Move to Preferences when settings is clicked*/
         	Intent i = new Intent(this, Preferences.class);
             startActivity(i);
             return true;
