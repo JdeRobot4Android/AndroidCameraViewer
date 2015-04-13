@@ -208,7 +208,7 @@ public class MainActivity extends Activity implements OnClickListener {
         communicator = Ice.Util.initialize();
         
         /*Get the object proxy*/
-        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+"tcp"+ " -h "+"10.211.55.9"+" -p " + "9999");
+        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
       	//Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
         
       	//Toast.makeText(getApplicationContext(), cprx.toString(), Toast.LENGTH_LONG).show();
