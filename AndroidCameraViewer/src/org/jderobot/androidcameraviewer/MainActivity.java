@@ -59,8 +59,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	private int imagwidth = 240;
 	private int imagheight = 160;
 	
-	private int height_const = 0;
-	
 	private int executed = 1;
 	
 	/*Aspect Ratio*/
@@ -83,7 +81,7 @@ public class MainActivity extends Activity implements OnClickListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         port = prefs.getString("Port Number", "9999");
         protocol = prefs.getString("protocol", "tcp");
-        ipaddress = prefs.getString("ipkey", "172.10.2.102");
+        ipaddress = prefs.getString("ipkey", "0.0.0.0");
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //new CustomTask().execute((Void[])null);
         try {
@@ -97,15 +95,10 @@ public class MainActivity extends Activity implements OnClickListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+        
+        setaspectratio();
     }
     
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-     super.onWindowFocusChanged(hasFocus);
-     height_const = rel_layout.getHeight();
-     
-    }
 
     public void onClick(View v) {  
     	
@@ -217,11 +210,12 @@ public class MainActivity extends Activity implements OnClickListener {
         /*Get the object proxy*/
         Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
       	//Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
-      	
+        
       	//Toast.makeText(getApplicationContext(), cprx.toString(), Toast.LENGTH_LONG).show();
         cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
-  		
+        
   		jderobot.ImageData realdata = cprx.getImageData();
+  		
   		if(cprx.getImageData() != null){
   			/*This code is reached only when connection is established so set NullFlag to 0*/
   			NullFlag = "0";
@@ -232,19 +226,58 @@ public class MainActivity extends Activity implements OnClickListener {
         //Toast.makeText(getApplicationContext(), realdata.description.format, Toast.LENGTH_LONG).show();
       	
       	/*Convert NV21 image data to Jpeg*/
-      	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
+  		YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
       	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
       	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-
-      	/*Convert Jpeg to Bitmap*/
-      	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+//  		byte[] yuv420sp = new byte[realdata.description.height * realdata.description.width*3/2];;
+//  		int yIndex = 0;
+//  		final int frameSize = realdata.description.height * realdata.description.width;
+//        int uvIndex = frameSize;
+//      	int a, R, G, B, Y, U, V;
+//        int index = 0;
+//        for (int j = 0; j < realdata.description.height; j++) {
+//            for (int i = 0; i < realdata.description.width; i++) {
+//
+//                a = (realdata.pixelData[index] & 0xff000000) >> 24; // a is not used obviously
+//                R = (realdata.pixelData[index] & 0xff0000) >> 16;
+//                G = (realdata.pixelData[index] & 0xff00) >> 8;
+//                B = (realdata.pixelData[index] & 0xff) >> 0;
+//
+//                // well known RGB to YUV algorithm
+//                Y = ( (  66 * R + 129 * G +  25 * B + 128) >> 8) +  16;
+//                U = ( ( -38 * R -  74 * G + 112 * B + 128) >> 8) + 128;
+//                V = ( ( 112 * R -  94 * G -  18 * B + 128) >> 8) + 128;
+//
+//                // NV21 has a plane of Y and interleaved planes of VU each sampled by a factor of 2
+//                //    meaning for every 4 Y pixels there are 1 V and 1 U.  Note the sampling is every other
+//                //    pixel AND every other scanline.
+//                yuv420sp[yIndex++] = (byte) ((Y < 0) ? 0 : ((Y > 255) ? 255 : Y));
+//                if (j % 2 == 0 && index % 2 == 0) { 
+//                    yuv420sp[uvIndex++] = (byte)((V<0) ? 0 : ((V > 255) ? 255 : V));
+//                    yuv420sp[uvIndex++] = (byte)((U<0) ? 0 : ((U > 255) ? 255 : U));
+//                }
+//
+//                index ++;
+//            }
+//        }
+//      	YuvImage img = new YuvImage(yuv420sp, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
+//      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
+//      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
+//      	/*Convert Jpeg to Bitmap*/
+//      	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+  		
+//	  	  	
+//      	
+	  	  /*Convert image to Bitmap*/
+	  	  Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
+	  	  
       	//Bitmap mBitmap = BitmapFactory.decodeByteArray(realdata.pixelData,0,realdata.pixelData.length);
       	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
       	
       	/* Get the Height and Width of the Bitmap Image*/
-      	imagwidth = mBitmap.getWidth();
-      	imagheight = mBitmap.getHeight();
-      	Log.e("aaa", imagwidth+" " + imagheight + " " + realdata.description.height);
+	  	imagwidth = mBitmap.getWidth(); 	
+	  	imagheight = mBitmap.getHeight();
+      	//Log.e("aaa", imagwidth+" " + imagheight + " " + realdata.description.height);
       	/*Set Bitmap image*/
 		imag.setImageBitmap(mBitmap);
       	
@@ -300,7 +333,7 @@ public class MainActivity extends Activity implements OnClickListener {
   			e.printStackTrace();
   		}
     	//imag.setLayoutParams(new LayoutParams(imagwidth, imagheight));
-      	//setaspectratio();
+      	setaspectratio();
 //      final float scale = this.getResources().getDisplayMetrics().density;
           
 //  		imag.getLayoutParams().width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, imagwidth, getResources().getDisplayMetrics());
