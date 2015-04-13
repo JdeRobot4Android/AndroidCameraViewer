@@ -81,7 +81,7 @@ public class MainActivity extends Activity implements OnClickListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         port = prefs.getString("Port Number", "9999");
         protocol = prefs.getString("protocol", "tcp");
-        ipaddress = prefs.getString("ipkey", "172.10.2.102");
+        ipaddress = prefs.getString("ipkey", "0.0.0.0");
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //new CustomTask().execute((Void[])null);
         try {
