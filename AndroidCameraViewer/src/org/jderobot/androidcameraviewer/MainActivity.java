@@ -241,8 +241,8 @@ public class MainActivity extends Activity implements OnClickListener {
         v = v - 128;
 
         destination[j1++] = convertYuvToRgb(y1, u, v);
-        destination[j1++] = convertYuvToRgb(y3, u, v);
-        destination[j2++] = convertYuvToRgb(y2, u, v);
+        destination[j1++] = convertYuvToRgb(y2, u, v);
+        destination[j2++] = convertYuvToRgb(y3, u, v);
         destination[j2++] = convertYuvToRgb(y4, u, v);
       }
       i1 += width;
