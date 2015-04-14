@@ -38,7 +38,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private RelativeLayout rel_layout;	
 	
 	/*Declare pointer to camera interface*/
-	private CameraPrx cprx;
+	private CameraPrx cprx = null;
 	
 	/*String for port*/
 	private String port = "9999";
@@ -81,12 +81,11 @@ public class MainActivity extends Activity implements OnClickListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         port = prefs.getString("Port Number", "9999");
         protocol = prefs.getString("protocol", "tcp");
-        ipaddress = prefs.getString("ipkey", "0.0.0.0");
+        ipaddress = prefs.getString("ipkey", "192.168.1.10");
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         //new CustomTask().execute((Void[])null);
         try {
 			initializeCommunicator();
-			
 			//Toast.makeText(getApplicationContext(), "Communicator initialized", Toast.LENGTH_LONG).show();
 		} catch (DataNotExistException e) {
 			// TODO Auto-generated catch block
@@ -134,58 +133,162 @@ public class MainActivity extends Activity implements OnClickListener {
     
 
    
-    private class DownloadFilesTask extends AsyncTask<CameraPrx, Bitmap, Long> {
-    	 protected Long doInBackground(jderobot.CameraPrx... urls) {
-    		 /* Execute this loop until button is clicked*/
-    		 while(true){
-    		 try {
-    	    		
-    	  			jderobot.ImageData realdata;
-    	  			
-    	  			/*Get the image data*/
-    	  	  		realdata = cprx.getImageData();
-    	  	  		
-    	  	  		/*Present image format is NV21 and it gives 240 x 160 size images*/
-    		  	  	YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
-    		      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-    		      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-    	  	  	  	
-    		      	
-    	  	  	  	/*Convert image to Bitmap*/
-    	  	  	  	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-    	  	  	  	imagwidth = mBitmap.getWidth();
-    	  	  	  	
-    	  	  	  	imagheight = mBitmap.getHeight();
-    	  	  	  	
-    	  	  	  	publishProgress(mBitmap);
-    	  	  	  	if(isCancelled())
-    	  	  	  		break;
-    	  	  	
-    	  	  	} catch (DataNotExistException e) {
-    	  	  		// TODO Auto-generated catch block
-    	  	  		e.printStackTrace();
-    	  	  	} catch (HardwareFailedException e) {
-    	  	  		// TODO Auto-generated catch block
-    	  	  		e.printStackTrace();
-    	  	  		} catch (Exception e){
-    	  	  			e.printStackTrace();
-    	  	  		} 
-    		 }
-    		 
-    	     return (long) 1;
-    	 }
+  private class DownloadFilesTask extends AsyncTask<CameraPrx, Bitmap, Long> {
+    protected Long doInBackground(jderobot.CameraPrx... urls) {
+      jderobot.ImageData realdata;
+      /* Execute this loop until button is clicked */
+      while (true) {
+        try {
+          /* If proxy helper is not connected try to create it */
+          if (cprx == null) {
+            cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
+            synchronized (this) {
+              _communicator = communicator;
+              if (_cb != null) {
+                _cb.onCreate(_communicator);
+              }
+            }
+          }
+
+          /* Get the image data */
+          realdata = cprx.getImageData();
+
+          /* Check if we have allocated enough space for RGBA output image */
+          int length = realdata.description.width * realdata.description.height;
+          if (imageRgba == null || imageRgba.length != length) {
+            imageRgba = new int[length];
+          }
+          /* Check supported image formats */
+          if (realdata.description.format.equals("NV21")) {
+            convertNv21ToRgba(realdata.pixelData, imageRgba, realdata.description.width,
+                realdata.description.height);
+          } else if (realdata.description.format.equals("RGB8")) {
+            convertRgbToRgba(realdata.pixelData, imageRgba, realdata.description.width,
+                realdata.description.height);
+          }
+          /* Create bitmap with RGBA image */
+          Bitmap mBitmap =
+              Bitmap.createBitmap(imageRgba, realdata.description.width,
+                  realdata.description.height, Bitmap.Config.ARGB_8888);
+          imagwidth = mBitmap.getWidth();
+
+          imagheight = mBitmap.getHeight();
+
+          publishProgress(mBitmap);
+          if (isCancelled())
+            break;
+
+        } catch (Ice.TimeoutException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (DataNotExistException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (HardwareFailedException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (Exception e) {
+          e.printStackTrace();
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+          }
+        }
+      }
+
+      return (long) 1;
+    }
 
 
-    	 protected void onProgressUpdate(Bitmap... mBitmap) {
-    		 /*Set the ImageView to Bitmap on ProgressUpdate*/
-    	     imag.setImageBitmap(mBitmap[0]);
-    	 }
+    protected void onProgressUpdate(Bitmap... mBitmap) {
+      /* Set the ImageView to Bitmap on ProgressUpdate */
+      imag.setImageBitmap(mBitmap[0]);
+    }
 
-    	 protected void onPostExecute(Long result) {
-    	     /*Do nothing*/
-    	 }
-    	}
-  	
+    protected void onPostExecute(Long result) {
+      /* Do nothing */
+    }
+  }
+
+  // int Nv21ToRgba[][][] = new int[256][256][256];
+  int[] imageRgba = null;
+
+  /**
+   * Converts NV21 to RGBA (R + G + B + alpha)
+   * 
+   * @param source NV21 image
+   * @param destination RGBA image
+   * @param width image width
+   * @param height image height
+   */
+  public static void convertNv21ToRgba(byte[] source, int[] destination, int width, int height) {
+    int length = destination.length;
+    int u, v, y1, y2, y3, y4;
+
+    int i1 = 0, i2 = width, j1 = 0, j2 = width, k = length;
+    for (int y = 0; y < height; y += 2) {
+      Log.w("DEBUG LOOP", "i1=" + i1 + ", i2=" + i2 + ", j1=" + j1 + ", j2=" + j2 + ", k=" + k);
+      for (int x = 0; x < width; x += 2) {
+        y1 = source[i1++] & 0xff;
+        y2 = source[i1++] & 0xff;
+        y3 = source[i2++] & 0xff;
+        y4 = source[i2++] & 0xff;
+        u = source[k++] & 0xff;
+        v = source[k++] & 0xff;
+        u = u - 128;
+        v = v - 128;
+
+        destination[j1++] = convertYuvToRgb(y1, u, v);
+        destination[j1++] = convertYuvToRgb(y2, u, v);
+        destination[j2++] = convertYuvToRgb(y3, u, v);
+        destination[j2++] = convertYuvToRgb(y4, u, v);
+      }
+      i1 += width;
+      i2 += width;
+      j1 += width;
+      j2 += width;
+
+    }
+  }
+
+  /**
+   * Converts YUV pixel to RGBA with alpha opaque
+   * 
+   * @param y Y component
+   * @param u U component
+   * @param v V component
+   * @return equivalent RGBA pixel opaque
+   */
+  private static int convertYuvToRgb(int y, int u, int v) {
+    int r, g, b;
+
+    r = y + (int) 1.402f * v;
+    g = y - (int) (0.344f * u + 0.714f * v);
+    b = y + (int) 1.772f * u;
+    r = (r > 255) ? 255 : (r < 0) ? 0 : r;
+    g = (g > 255) ? 255 : (g < 0) ? 0 : g;
+    b = (b > 255) ? 255 : (b < 0) ? 0 : b;
+    return 0xff000000 | (b << 16) | (g << 8) | r;
+  }
+
+  /**
+   * Converts RGB (R + G + B) to RGBA (R + G + B + alpha)
+   * 
+   * @param source RGB image
+   * @param destination RGBA image
+   * @param width image width
+   * @param height image height
+   */
+  public static void convertRgbToRgba(byte[] source, int[] destination, int width, int height) {
+    int length = destination.length;
+
+    for (int i = 0, j = 0; i < length; i++, j += 3) {
+      destination[i] = 0xff000000 + source[j + 2] + (source[j + 1] << 8) + (source[j] << 16);
+    }
+  }
+
     /* Implementation of ICE */
     interface CommunicatorCallback {
       void onWait();
@@ -197,97 +300,25 @@ public class MainActivity extends Activity implements OnClickListener {
     
     private Ice.Communicator _communicator;
     private CommunicatorCallback _cb;
-    
+    Ice.ObjectPrx base;
+    Ice.Communicator communicator;
+
     
     private void initializeCommunicator() throws DataNotExistException, HardwareFailedException {
       try {
     	
     	NullFlag = "1";
     	/*Initialize Ice communicator*/
-        Ice.Communicator communicator;
-        communicator = Ice.Util.initialize();
+                communicator = Ice.Util.initialize();
         
         /*Get the object proxy*/
-        Ice.ObjectPrx base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port);
+        base = communicator.stringToProxy("cameraA:"+protocol+ " -h "+ipaddress+" -p " + port + " -t 1500");
       	//Toast.makeText(getApplicationContext(), base.toString(), Toast.LENGTH_LONG).show();
         
       	//Toast.makeText(getApplicationContext(), cprx.toString(), Toast.LENGTH_LONG).show();
-        cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
-        
-  		jderobot.ImageData realdata = cprx.getImageData();
-  		
-  		if(cprx.getImageData() != null){
-  			/*This code is reached only when connection is established so set NullFlag to 0*/
-  			NullFlag = "0";
-  		}
-  		
-      	//Toast.makeText(getApplicationContext(), realdata.toString(), Toast.LENGTH_LONG).show();
-      	//jderobot.ImageData realdata = cprx.begin_getImageData();
-        //Toast.makeText(getApplicationContext(), realdata.description.format, Toast.LENGTH_LONG).show();
-      	
-      	/*Convert NV21 image data to Jpeg*/
-  		YuvImage img = new YuvImage(realdata.pixelData, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
-      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-//  		byte[] yuv420sp = new byte[realdata.description.height * realdata.description.width*3/2];;
-//  		int yIndex = 0;
-//  		final int frameSize = realdata.description.height * realdata.description.width;
-//        int uvIndex = frameSize;
-//      	int a, R, G, B, Y, U, V;
-//        int index = 0;
-//        for (int j = 0; j < realdata.description.height; j++) {
-//            for (int i = 0; i < realdata.description.width; i++) {
-//
-//                a = (realdata.pixelData[index] & 0xff000000) >> 24; // a is not used obviously
-//                R = (realdata.pixelData[index] & 0xff0000) >> 16;
-//                G = (realdata.pixelData[index] & 0xff00) >> 8;
-//                B = (realdata.pixelData[index] & 0xff) >> 0;
-//
-//                // well known RGB to YUV algorithm
-//                Y = ( (  66 * R + 129 * G +  25 * B + 128) >> 8) +  16;
-//                U = ( ( -38 * R -  74 * G + 112 * B + 128) >> 8) + 128;
-//                V = ( ( 112 * R -  94 * G -  18 * B + 128) >> 8) + 128;
-//
-//                // NV21 has a plane of Y and interleaved planes of VU each sampled by a factor of 2
-//                //    meaning for every 4 Y pixels there are 1 V and 1 U.  Note the sampling is every other
-//                //    pixel AND every other scanline.
-//                yuv420sp[yIndex++] = (byte) ((Y < 0) ? 0 : ((Y > 255) ? 255 : Y));
-//                if (j % 2 == 0 && index % 2 == 0) { 
-//                    yuv420sp[uvIndex++] = (byte)((V<0) ? 0 : ((V > 255) ? 255 : V));
-//                    yuv420sp[uvIndex++] = (byte)((U<0) ? 0 : ((U > 255) ? 255 : U));
-//                }
-//
-//                index ++;
-//            }
-//        }
-//      	YuvImage img = new YuvImage(yuv420sp, ImageFormat.NV21, realdata.description.width, realdata.description.height, null);
-//      	ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-//      	img.compressToJpeg(new Rect(0, 0, realdata.description.width, realdata.description.height), 100, baoStream);
-//      	/*Convert Jpeg to Bitmap*/
-//      	Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-  		
-//	  	  	
-//      	
-	  	  /*Convert image to Bitmap*/
-	  	  Bitmap mBitmap = BitmapFactory.decodeByteArray(baoStream.toByteArray(),0,baoStream.size());
-	  	  
-      	//Bitmap mBitmap = BitmapFactory.decodeByteArray(realdata.pixelData,0,realdata.pixelData.length);
-      	//Toast.makeText(getApplicationContext(), mBitmap.toString(), Toast.LENGTH_LONG).show();
-      	
-      	/* Get the Height and Width of the Bitmap Image*/
-	  	imagwidth = mBitmap.getWidth(); 	
-	  	imagheight = mBitmap.getHeight();
-      	//Log.e("aaa", imagwidth+" " + imagheight + " " + realdata.description.height);
-      	/*Set Bitmap image*/
-		imag.setImageBitmap(mBitmap);
-      	
-        synchronized (this) {
-          _communicator = communicator;
-          if (_cb != null) {
-            _cb.onCreate(_communicator);
-          }
-        }
+        NullFlag = "0";
       } catch (Ice.LocalException ex) {
+        Log.e("ICE", "Error ICE");
         synchronized (this) {
           if (_cb != null) {
             _cb.onError(ex);
@@ -302,7 +333,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
       public void onPause() {
         super.onPause();
-         
+        runner.cancel(true);
       }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
