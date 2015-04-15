@@ -156,7 +156,7 @@ public class MainActivity extends Activity implements OnClickListener {
       /* Execute this loop until button is clicked */
       while (true) {
         try {
-          /* If proxy helper is not connected try to create it */
+          /* Create proxy every time */
             cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
             synchronized (this) {
               _communicator = communicator;
