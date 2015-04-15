@@ -196,10 +196,7 @@ public class MainActivity extends Activity implements OnClickListener {
           if(difference<1000){
         	  /*Add framecount and bandwidth count*/
         	  framecount++;
-        	  if(realdata.description.format.equals("NV21"))
-        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*1.5;
-        	  if(realdata.description.format.equals("RGB8"))
-        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*3;
+        	  bandwidthcount += realdata.pixelData.length;
           }	
           else{
         	  /*Set oldframetime to currenttime*/
