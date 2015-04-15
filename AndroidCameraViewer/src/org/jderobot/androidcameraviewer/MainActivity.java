@@ -157,7 +157,6 @@ public class MainActivity extends Activity implements OnClickListener {
       while (true) {
         try {
           /* If proxy helper is not connected try to create it */
-          if (cprx == null) {
             cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
             synchronized (this) {
               _communicator = communicator;
@@ -165,7 +164,6 @@ public class MainActivity extends Activity implements OnClickListener {
                 _cb.onCreate(_communicator);
               }
             }
-          }
           
           /* Get the image data */
           realdata = cprx.getImageData();
