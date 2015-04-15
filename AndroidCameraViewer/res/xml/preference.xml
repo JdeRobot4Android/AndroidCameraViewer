@@ -9,6 +9,9 @@
 		<EditTextPreference android:title="@string/ipaddress" android:key="ipaddress" android:defaultValue="@string/defaultip"/>	 
 	</PreferenceCategory>
     
-    
+    <PreferenceCategory android:title="System Settings">
+        
+		<CheckBoxPreference android:key="@string/lockscreen" android:title="@string/lockscreentitle"/>	 
+	</PreferenceCategory>
     
 </PreferenceScreen>
