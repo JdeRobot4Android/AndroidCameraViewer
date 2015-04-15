@@ -1,5 +1,8 @@
 package org.jderobot.androidcameraviewer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jderobot.androidcameraviewer.R;
 import jderobot.CameraPrx;
 import jderobot.DataNotExistException;
@@ -144,15 +147,22 @@ public class MainActivity extends Activity implements OnClickListener {
 
    
   private class DownloadFilesTask extends AsyncTask<CameraPrx, Bitmap, Long> {
+    private class FrameData {
+      public double timestamp;
+      public int bytes;
+
+      FrameData(double timestamp, int bytes) {
+        this.timestamp = timestamp;
+        this.bytes = bytes;
+      }
+    }
+
+    List<FrameData> statistics = new ArrayList<FrameData>();
+    double last_update = 0, currentframetime = 0;
+
     protected Long doInBackground(jderobot.CameraPrx... urls) {
       jderobot.ImageData realdata;
-      
-      double oldframetime = System.currentTimeMillis();
-      double currentframetime;
-      double framecount = 0;
-      double difference = 0;
-      double bandwidthcount = 0;
-      
+
       /* Execute this loop until button is clicked */
       while (true) {
         try {
@@ -166,7 +176,7 @@ public class MainActivity extends Activity implements OnClickListener {
               }
             }
           }
-          
+
           /* Get the image data */
           realdata = cprx.getImageData();
 
@@ -183,7 +193,7 @@ public class MainActivity extends Activity implements OnClickListener {
             convertRgbToRgba(realdata.pixelData, imageRgba, realdata.description.width,
                 realdata.description.height);
           }
-          
+
           /* Create bitmap with RGBA image */
           Bitmap mBitmap =
               Bitmap.createBitmap(imageRgba, realdata.description.width,
@@ -191,23 +201,27 @@ public class MainActivity extends Activity implements OnClickListener {
           imagwidth = mBitmap.getWidth();
 
           imagheight = mBitmap.getHeight();
+          /* Add new frame to statistics */
           currentframetime = System.currentTimeMillis();
-          difference = currentframetime - oldframetime;
-          if(difference<1000){
-        	  /*Add framecount and bandwidth count*/
-        	  framecount++;
-        	  bandwidthcount += realdata.pixelData.length;
-          }	
-          else{
-        	  /*Set oldframetime to currenttime*/
-        	  oldframetime = currentframetime;
-        	  /*Convert bandwidth to KB/s*/
-        	  fps = framecount*1000/difference;
-        	  bandwidth = (bandwidthcount*1000)/(difference*1024);
-        	  /*Reinitialize framecount and bandwidthcount*/
-        	  framecount = 0;
-        	  bandwidthcount = 0;
+          FrameData frame_data = new FrameData(currentframetime, realdata.pixelData.length);
+          statistics.add(frame_data);
+          /* Remove old values */
+          currentframetime -= 3000;
+          while (statistics.size() > 2 && statistics.get(0).timestamp < currentframetime) {
+            statistics.remove(0);
           }
+          /* Calculate data only when 2 or more frames have been received */
+          if (statistics.size() > 1) {
+            int bytes_total = 0, num_frames = statistics.size() - 1;
+            double elapsed_time =
+                (statistics.get(num_frames).timestamp - statistics.get(0).timestamp) / 1000;
+            for (FrameData current : statistics) {
+              bytes_total += current.bytes;
+            }
+            fps = num_frames / elapsed_time;
+            bandwidth = bytes_total / elapsed_time;
+          }
+          /* Show updates */
           publishProgress(mBitmap);
           if (isCancelled())
             break;
@@ -239,9 +253,12 @@ public class MainActivity extends Activity implements OnClickListener {
     protected void onProgressUpdate(Bitmap... mBitmap) {
       /* Set the ImageView to Bitmap on ProgressUpdate */
       imag.setImageBitmap(mBitmap[0]);
-      /*Set the fps and bandwidth and round them to nearest integer*/
-      fps_view.setText(" "+(int)fps + " fps");
-      bandwidth_view.setText(" "+ (int)bandwidth +" KB/s");
+      /* Update displayed fps and bandwidth data at most 2 times per second */
+      if ((currentframetime - last_update) > 500) {
+        fps_view.setText(" " + String.format("%.1f", fps) + " fps");
+        bandwidth_view.setText(" " + String.format("%.1f", bandwidth / 1024) + " KB/s");
+        last_update = currentframetime;
+      }
     }
 
     protected void onPostExecute(Long result) {
