@@ -1,8 +1,5 @@
 package org.jderobot.androidcameraviewer;
 
-import java.io.ByteArrayOutputStream;
-
-
 import org.jderobot.androidcameraviewer.R;
 import jderobot.CameraPrx;
 import jderobot.DataNotExistException;
@@ -12,10 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -26,6 +19,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -33,6 +27,18 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	/*Image View declared*/
 	private ImageView imag;	
+
+	/*Text View for FPS*/
+	private TextView fps_view;
+	
+	/*Value of fps*/
+	private double fps = 0;
+	
+	/*Text View for Bandwidth*/
+	private TextView bandwidth_view;
+	
+	/*Value of Bandwidth*/
+	private double bandwidth = 0;
 	
 	/*Button declared*/
 	private RelativeLayout rel_layout;	
@@ -69,6 +75,10 @@ public class MainActivity extends Activity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        fps_view = (TextView) findViewById(R.id.textView2);
+        
+        bandwidth_view =(TextView) findViewById(R.id.textView4);
         
         /*Set the ImageView to imag*/
         imag = (ImageView) findViewById(R.id.imageView1);
@@ -136,6 +146,13 @@ public class MainActivity extends Activity implements OnClickListener {
   private class DownloadFilesTask extends AsyncTask<CameraPrx, Bitmap, Long> {
     protected Long doInBackground(jderobot.CameraPrx... urls) {
       jderobot.ImageData realdata;
+      
+      double oldframetime = System.currentTimeMillis();
+      double currentframetime;
+      double framecount = 0;
+      double difference = 0;
+      double bandwidthcount = 0;
+      
       /* Execute this loop until button is clicked */
       while (true) {
         try {
@@ -149,7 +166,7 @@ public class MainActivity extends Activity implements OnClickListener {
               }
             }
           }
-
+          
           /* Get the image data */
           realdata = cprx.getImageData();
 
@@ -166,6 +183,7 @@ public class MainActivity extends Activity implements OnClickListener {
             convertRgbToRgba(realdata.pixelData, imageRgba, realdata.description.width,
                 realdata.description.height);
           }
+          
           /* Create bitmap with RGBA image */
           Bitmap mBitmap =
               Bitmap.createBitmap(imageRgba, realdata.description.width,
@@ -173,7 +191,26 @@ public class MainActivity extends Activity implements OnClickListener {
           imagwidth = mBitmap.getWidth();
 
           imagheight = mBitmap.getHeight();
-
+          currentframetime = System.currentTimeMillis();
+          difference = currentframetime - oldframetime;
+          if(difference<1000){
+        	  /*Add framecount and bandwidth count*/
+        	  framecount++;
+        	  if(realdata.description.format.equals("NV21"))
+        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*1.5;
+        	  if(realdata.description.format.equals("RGB8"))
+        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*3;
+          }	
+          else{
+        	  /*Set oldframetime to currenttime*/
+        	  oldframetime = currentframetime;
+        	  /*Convert bandwidth to KB/s*/
+        	  fps = framecount*1000/difference;
+        	  bandwidth = (bandwidthcount*1000)/(difference*1024);
+        	  /*Reinitialize framecount and bandwidthcount*/
+        	  framecount = 0;
+        	  bandwidthcount = 0;
+          }
           publishProgress(mBitmap);
           if (isCancelled())
             break;
@@ -205,6 +242,9 @@ public class MainActivity extends Activity implements OnClickListener {
     protected void onProgressUpdate(Bitmap... mBitmap) {
       /* Set the ImageView to Bitmap on ProgressUpdate */
       imag.setImageBitmap(mBitmap[0]);
+      /*Set the fps and bandwidth and round them to nearest integer*/
+      fps_view.setText(" "+(int)fps + " fps");
+      bandwidth_view.setText(" "+ (int)bandwidth +" KB/s");
     }
 
     protected void onPostExecute(Long result) {
@@ -226,7 +266,7 @@ public class MainActivity extends Activity implements OnClickListener {
   public static void convertNv21ToRgba(byte[] source, int[] destination, int width, int height) {
     int length = destination.length;
     int u, v, y1, y2, y3, y4;
-
+    
     int i1 = 0, i2 = width, j1 = 0, j2 = width, k = length;
     for (int y = 0; y < height; y += 2) {
       Log.w("DEBUG LOOP", "i1=" + i1 + ", i2=" + i2 + ", j1=" + j1 + ", j2=" + j2 + ", k=" + k);
