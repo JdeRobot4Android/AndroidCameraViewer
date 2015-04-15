@@ -170,11 +170,6 @@ public class MainActivity extends Activity implements OnClickListener {
           /* Get the image data */
           realdata = cprx.getImageData();
 
-          /* Check if we have allocated enough space for RGBA output image */
-          int length = realdata.description.width * realdata.description.height;
-          if (imageRgba == null || imageRgba.length != length) {
-            imageRgba = new int[length];
-          }
           /* Check supported image formats */
           if (realdata.description.format.equals("NV21")) {
             convertNv21ToRgba(realdata.pixelData, imageRgba, realdata.description.width,
@@ -193,15 +188,11 @@ public class MainActivity extends Activity implements OnClickListener {
           imagheight = mBitmap.getHeight();
           currentframetime = System.currentTimeMillis();
           difference = currentframetime - oldframetime;
-          if(difference<1000){
+          if(difference < 1000){
         	  /*Add framecount and bandwidth count*/
         	  framecount++;
-        	  if(realdata.description.format.equals("NV21"))
-        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*1.5;
-        	  if(realdata.description.format.equals("RGB8"))
-        		  bandwidthcount = bandwidthcount + realdata.description.width*realdata.description.height*3;
-          }	
-          else{
+        	  bandwidthcount = bandwidthcount + realdata.pixelData.length;
+          }	else{
         	  /*Set oldframetime to currenttime*/
         	  oldframetime = currentframetime;
         	  /*Convert bandwidth to KB/s*/
