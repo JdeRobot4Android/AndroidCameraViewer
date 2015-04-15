@@ -4,9 +4,9 @@
 
     <PreferenceCategory android:title="ICE Settings">
         
-		<EditTextPreference android:defaultValue="@string/port" android:key="@string/PortNumber" android:title="@string/PortNumber"/>
-		 <EditTextPreference android:defaultValue="@string/protocol" android:key="@string/ProtocolNumber" android:title="@string/ProtocolTitle"/>    
-		<EditTextPreference android:title="@string/ipaddress" android:key="@string/ipaddresskey" android:defaultValue="@string/defaultip"/>	 
+		<EditTextPreference android:defaultValue="@string/port" android:key="port" android:title="@string/PortNumber"/>
+		 <EditTextPreference android:defaultValue="@string/protocol" android:key="protocol" android:title="@string/ProtocolTitle"/>    
+		<EditTextPreference android:title="@string/ipaddress" android:key="ipaddress" android:defaultValue="@string/defaultip"/>	 
 	</PreferenceCategory>
     
     

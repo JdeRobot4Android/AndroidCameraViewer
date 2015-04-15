@@ -76,6 +76,7 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        
         fps_view = (TextView) findViewById(R.id.textView2);
         
         bandwidth_view =(TextView) findViewById(R.id.textView4);
@@ -89,10 +90,11 @@ public class MainActivity extends Activity implements OnClickListener {
         
         /*Call the preferences and set them to the strings*/
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        port = prefs.getString("Port Number", "9999");
-        protocol = prefs.getString("protocol", "tcp");
-        ipaddress = prefs.getString("ipkey", "192.168.1.10");
+        port = prefs.getString("port", "9999");
+        protocol = prefs.getString("protocol", "default");
+        ipaddress = prefs.getString("ipaddress", "172.10.2.102");
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //Toast.makeText(getApplicationContext(), port + ""+ipaddress+ "" +protocol, Toast.LENGTH_LONG).show();
         //new CustomTask().execute((Void[])null);
         try {
 			initializeCommunicator();
@@ -156,7 +158,8 @@ public class MainActivity extends Activity implements OnClickListener {
       /* Execute this loop until button is clicked */
       while (true) {
         try {
-          /* Create proxy every time */
+          /* If proxy helper is not connected try to create it */
+          if (cprx == null) {
             cprx = jderobot.CameraPrxHelper.uncheckedCast(base);
             synchronized (this) {
               _communicator = communicator;
@@ -164,6 +167,7 @@ public class MainActivity extends Activity implements OnClickListener {
                 _cb.onCreate(_communicator);
               }
             }
+          }
           
           /* Get the image data */
           realdata = cprx.getImageData();
@@ -382,14 +386,23 @@ public class MainActivity extends Activity implements OnClickListener {
     @Override
     protected void onResume() {
       super.onResume();
-      
+      /* Test if preferences was modified */
+      if (Preferences.modified) {
+        /* Clear modified flag */
+        Preferences.modified = false;
+        /* Finish this Activity and reload it again */
+        Toast.makeText(getApplicationContext(), R.string.application_reload, Toast.LENGTH_LONG).show();
+        this.finish();
+        Intent i = new Intent(this, MainActivity.class);
+        startActivity(i);
+      }
       /* We call the Preferences and get the selected values */
       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
       /* Get the port, protocol and ip address */
-      port = prefs.getString("Port Number", "9999");
+      port = prefs.getString("port", "9999");
       protocol = prefs.getString("protocol", "default");
-      ipaddress = prefs.getString("ipkey", "172.10.2.102");
+      ipaddress = prefs.getString("ipaddress", "172.10.2.102");
       try {
   			initializeCommunicator();
   			

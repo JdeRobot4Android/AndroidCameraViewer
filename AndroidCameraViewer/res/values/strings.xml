@@ -12,6 +12,7 @@
     <string name="ipaddress">ipaddress</string>
     <string name="ipaddresskey">ipkey</string>
     <string name="defaultip">172.10.2.102</string>
+    <string name="application_reload">Reloading application to apply changes</string>
 
     
 
