@@ -1,7 +1,5 @@
 package org.jderobot.androidcameraviewer;
 
-
-
 import org.jderobot.androidcameraviewer.R;
 
 import android.preference.EditTextPreference;

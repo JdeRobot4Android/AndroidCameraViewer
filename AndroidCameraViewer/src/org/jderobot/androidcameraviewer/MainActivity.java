@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -417,6 +418,13 @@ public class MainActivity extends Activity implements OnClickListener {
       port = prefs.getString("port", "9999");
       protocol = prefs.getString("protocol", "default");
       ipaddress = prefs.getString("ipaddress", "172.10.2.102");
+      
+      // Check wakelock and lockscreen
+      if (prefs.getBoolean("lockscreen", false) == true) {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+      } else {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+      }
       try {
   			initializeCommunicator();
   			
